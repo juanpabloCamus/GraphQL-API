@@ -18,7 +18,6 @@ const persons = [
     },
     {
         name : "Itzi" ,
-        phone : "044-123456" ,
         street : "Pasaje Testing" ,
         city : " Ibiza" ,
         id : ' 3d599471-3436-11e9 - bc57-8b80ba54c431'
@@ -26,6 +25,12 @@ const persons = [
 ]
 
 const typeDefs = gql`
+
+    enum YesNo{
+        YES
+        NO
+    }
+
     type Person {
         name: String!
         phone: String
@@ -37,7 +42,7 @@ const typeDefs = gql`
 
     type Query {
         personCount: Int!
-        allPersons: [Person]!
+        allPersons(phone: YesNo): [Person]!
         findPerson(name: String!): Person
     }
 
@@ -55,7 +60,15 @@ const typeDefs = gql`
 const resolvers = {
     Query: {
         personCount: () => persons.length,
-        allPersons: () => persons,
+        allPersons: (root, args) => {
+            if (args.phone === 'YES') {
+                return persons.filter(p => p.phone)
+            }
+            if (args.phone === 'NO') {
+                return persons.filter(p => !p.phone)
+            }
+            return persons
+        },
         findPerson: (root, args) => {
             const {name} = args
             return persons.find(p => p.name === name)
