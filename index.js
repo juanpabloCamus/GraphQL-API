@@ -1,28 +1,29 @@
 import {ApolloServer,UserInputError, gql} from 'apollo-server';
 import {v1 as uuid} from 'uuid';
+import axios from 'axios';
 
-const persons = [
-    {
-        name : "Midu" ,
-        phone : "034-1234567" ,
-        street : "Calle Frontend" ,
-        city : "Barcelona" ,
-        id : "3d594650-3434-11e9 - bc57-8b80ba54c431"
-    } ,
-    {
-        name : "Youseff" ,
-        phone : "044-123456", 
-        street : "Avenida Fullstack" ,
-        city : "Mataro " ,
-        id : '3d599470-3436-11e9 - bc57-8b80ba54c431'
-    },
-    {
-        name : "Itzi" ,
-        street : "Pasaje Testing" ,
-        city : " Ibiza" ,
-        id : ' 3d599471-3436-11e9 - bc57-8b80ba54c431'
-    }
-]
+// const persons = [
+//     {
+//         name : "Midu" ,
+//         phone : "034-1234567" ,
+//         street : "Calle Frontend" ,
+//         city : "Barcelona" ,
+//         id : "3d594650-3434-11e9 - bc57-8b80ba54c431"
+//     } ,
+//     {
+//         name : "Youseff" ,
+//         phone : "044-123456", 
+//         street : "Avenida Fullstack" ,
+//         city : "Mataro " ,
+//         id : '3d599470-3436-11e9 - bc57-8b80ba54c431'
+//     },
+//     {
+//         name : "Itzi" ,
+//         street : "Pasaje Testing" ,
+//         city : " Ibiza" ,
+//         id : ' 3d599471-3436-11e9 - bc57-8b80ba54c431'
+//     }
+// ]
 
 const typeDefs = gql`
 
@@ -64,14 +65,15 @@ const typeDefs = gql`
 const resolvers = {
     Query: {
         personCount: () => persons.length,
-        allPersons: (root, args) => {
+        allPersons: async (root, args) => {
+            const {data: personsFromRestApi} = await axios.get('http://localhost:3000/persons')
             if (args.phone === 'YES') {
-                return persons.filter(p => p.phone)
+                return personsFromRestApi.filter(p => p.phone)
             }
             if (args.phone === 'NO') {
-                return persons.filter(p => !p.phone)
+                return personsFromRestApi.filter(p => !p.phone)
             }
-            return persons
+            return personsFromRestApi
         },
         findPerson: (root, args) => {
             const {name} = args
