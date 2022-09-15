@@ -54,6 +54,10 @@ const typeDefs = gql`
             city: String!
             id: ID
         ): Person
+        editNumber(
+            name: String!
+            phone: String!
+        ): Person
     }
 `
 
@@ -79,6 +83,12 @@ const resolvers = {
             if (persons.find(p => p.name === args.name)) throw new UserInputError('Name must be unique')
             const person = {...args, id:uuid()}
             persons.push(person)
+            return person
+        },
+        editNumber: (root, args) => {
+            const person = persons.find(p => p.name === args.name);
+            if(!person) return null
+            person.phone = args.phone;
             return person
         }
     },
