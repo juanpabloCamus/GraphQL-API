@@ -76,7 +76,7 @@ const resolvers = {
             return personsFromRestApi
         },
         findPerson: (root, args) => {
-            const {name} = args
+            const {name} = args;
             return persons.find(p => p.name === name)
         }
     },
