@@ -1,5 +1,5 @@
 import {} from 'dotenv/config'
-import {ApolloServer,UserInputError, gql} from 'apollo-server';
+import {ApolloServer, UserInputError, gql} from 'apollo-server';
 import './db.js';
 import Person from './models/person.js';
 
@@ -59,8 +59,19 @@ const resolvers = {
         },
         editNumber: async (root, args) => {
             const person = await Person.findOne({name: args.name})
+            if (!person) return
+        
             person.phone = args.phone
-            return person.save()
+            
+            try {
+                await person.save()
+            } catch (error) {
+                throw new UserInputError(error.message, {
+                    invalidArgs: args
+                })
+            }
+            
+            return person
         }
     },
     Person: {
