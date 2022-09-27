@@ -2,7 +2,10 @@ import {} from 'dotenv/config'
 import {ApolloServer, UserInputError, gql} from 'apollo-server';
 import './db.js';
 import Person from './models/person.js';
-import User from './models/user.js'
+import User from './models/user.js';
+import jwt from 'jsonwebtoken';
+
+const JWT_SECRET = process.env.JWT_SECRET
 
 const typeDefs = gql`
 
@@ -91,6 +94,29 @@ const resolvers = {
             }
             
             return person
+        },
+        createUser: (root, args) => {
+            const user = new User({ username: args.username })
+            return user.save().catch(e => {
+                throw new UserInputError(e.message, {
+                    invalidArgs: args
+                })
+            })
+        },
+        login: async (root, args) => {
+            const user = await User.findOne({username: args.username});
+            if (!user || args.password !== 'secret') {
+                throw new UserInputError('wrong credentials')
+            }
+
+            const userForToken = {
+                username: user.username,
+                id: user._id
+            }
+
+            return {
+                value: jwt.sign(userForToken, JWT_SECRET)
+            }
         }
     },
     Person: {
