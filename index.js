@@ -1,29 +1,8 @@
+import {} from 'dotenv/config'
 import {ApolloServer,UserInputError, gql} from 'apollo-server';
 import {v1 as uuid} from 'uuid';
-import axios from 'axios';
-
-// const persons = [
-//     {
-//         name : "Midu" ,
-//         phone : "034-1234567" ,
-//         street : "Calle Frontend" ,
-//         city : "Barcelona" ,
-//         id : "3d594650-3434-11e9 - bc57-8b80ba54c431"
-//     } ,
-//     {
-//         name : "Youseff" ,
-//         phone : "044-123456", 
-//         street : "Avenida Fullstack" ,
-//         city : "Mataro " ,
-//         id : '3d599470-3436-11e9 - bc57-8b80ba54c431'
-//     },
-//     {
-//         name : "Itzi" ,
-//         street : "Pasaje Testing" ,
-//         city : " Ibiza" ,
-//         id : ' 3d599471-3436-11e9 - bc57-8b80ba54c431'
-//     }
-// ]
+import './db.js';
+import Person from './models/person.js';
 
 const typeDefs = gql`
 
@@ -64,34 +43,24 @@ const typeDefs = gql`
 
 const resolvers = {
     Query: {
-        personCount: () => persons.length,
+        personCount: () => Person.collection.countDocuments(),
         allPersons: async (root, args) => {
-            const {data: personsFromRestApi} = await axios.get('http://localhost:3000/persons')
-            if (args.phone === 'YES') {
-                return personsFromRestApi.filter(p => p.phone)
-            }
-            if (args.phone === 'NO') {
-                return personsFromRestApi.filter(p => !p.phone)
-            }
-            return personsFromRestApi
+            return Person.find()
         },
         findPerson: (root, args) => {
             const {name} = args;
-            return persons.find(p => p.name === name)
+            return Person.findOne({ name })
         }
     },
     Mutation: {
         addPerson: (root, args) => {
-            if (persons.find(p => p.name === args.name)) throw new UserInputError('Name must be unique')
-            const person = {...args, id:uuid()}
-            persons.push(person)
-            return person
+            const person = new Person({...args})
+            return person.save()
         },
-        editNumber: (root, args) => {
-            const person = persons.find(p => p.name === args.name);
-            if(!person) return null
-            person.phone = args.phone;
-            return person
+        editNumber: async (root, args) => {
+            const person = await Person.findOne({name: args.name})
+            person.phone = args.phone
+            return person.save()
         }
     },
     Person: {
