@@ -2,6 +2,7 @@ import {} from 'dotenv/config'
 import {ApolloServer, UserInputError, gql} from 'apollo-server';
 import './db.js';
 import Person from './models/person.js';
+import User from './models/user.js'
 
 const typeDefs = gql`
 
@@ -19,10 +20,21 @@ const typeDefs = gql`
         id: ID!
     }
 
+    type User {
+        username: String!
+        friends: [Person]!
+        id: ID!
+    }
+
     type Query {
         personCount: Int!
         allPersons(phone: YesNo): [Person]!
         findPerson(name: String!): Person
+        me: User
+    }
+
+    type Token {
+        value: String!
     }
 
     type Mutation {
@@ -37,6 +49,13 @@ const typeDefs = gql`
             name: String!
             phone: String!
         ): Person
+        createUser(
+            username: String!
+        ): User
+        login(
+            username: String!
+            password: String!
+        ): Token
     }
 `
 
