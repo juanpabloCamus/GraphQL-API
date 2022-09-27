@@ -1,6 +1,5 @@
 import {} from 'dotenv/config'
 import {ApolloServer,UserInputError, gql} from 'apollo-server';
-import {v1 as uuid} from 'uuid';
 import './db.js';
 import Person from './models/person.js';
 
@@ -45,7 +44,8 @@ const resolvers = {
     Query: {
         personCount: () => Person.collection.countDocuments(),
         allPersons: async (root, args) => {
-            return Person.find()
+            if(!args.phone) return Person.find()
+            return Person.find({ phone: { $exists: args.phone === 'YES' } })
         },
         findPerson: (root, args) => {
             const {name} = args;
