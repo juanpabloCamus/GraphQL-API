@@ -1,5 +1,5 @@
 import {} from 'dotenv/config'
-import {ApolloServer, UserInputError, gql} from 'apollo-server';
+import {ApolloServer, UserInputError, gql, AuthenticationError} from 'apollo-server';
 import './db.js';
 import Person from './models/person.js';
 import User from './models/user.js';
@@ -78,9 +78,21 @@ const resolvers = {
         }
     },
     Mutation: {
-        addPerson: (root, args) => {
+        addPerson: async (root, args, context) => {
+            const {currentUser} = context
+            if(!currentUser) throw new AuthenticationError('not authenticated')
+            
             const person = new Person({...args})
-            return person.save()
+
+            try {
+                person.save();
+                currentUser.friends = currentUser.friends.concat(person);
+                await currentUser.save()
+            } catch (error) {
+                throw new UserInputError(error.message, {
+                    invalidArgs: args
+                })
+            }
         },
         editNumber: async (root, args) => {
             const person = await Person.findOne({name: args.name})
